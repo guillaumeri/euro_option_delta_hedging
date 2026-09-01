@@ -71,7 +71,7 @@ class OptionPricer:
         for i in range(self.N - 1, -1, -1):
             option_payoff = discount * (risk_free_proba * option_payoff[...,1:] + (1 - risk_free_proba) * option_payoff[...,:-1])
 
-        return np.squeeze(option_payoff) # squeeze to avoid [[[result]]]
+        return np.squeeze(option_payoff).item() if np.ndim(np.squeeze(option_payoff)) == 0 else np.squeeze(option_payoff) # squeeze to avoid [[[result]]], return a scalar if the result is a single value, otherwise return an array of results
 
     def price(self):
         """ 
@@ -98,8 +98,8 @@ class OptionPricer:
             vega = self.current_stock_price * stats.norm.pdf(d1) * np.sqrt(self.T)
             rho = self.strike_price * self.T * np.exp(-self.risk_free_rate * self.T) * stats.norm.cdf(d2)
         elif self.option_type == "put":
-            delta = sp.stats.norm.cdf(d1) - 1
-            gamma = sp.stats.norm.pdf(d1) / (self.current_stock_price * self.volatility * np.sqrt(self.T))
+            delta = stats.norm.cdf(d1) - 1
+            gamma = stats.norm.pdf(d1) / (self.current_stock_price * self.volatility * np.sqrt(self.T))
             theta = (-self.current_stock_price * stats.norm.pdf(d1) * self.volatility / (2 * np.sqrt(self.T)) + self.risk_free_rate * self.strike_price * np.exp(-self.risk_free_rate * self.T) * stats.norm.cdf(-d2))
             vega = self.current_stock_price *stats.norm.pdf(d1) * np.sqrt(self.T)
             rho = -self.strike_price * self.T * np.exp(-self.risk_free_rate * self.T) * stats.norm.cdf(-d2)
