@@ -1,8 +1,11 @@
 import numpy as np
-import scipy.stats as sp
+import scipy.stats as stats
 
 
 class OptionPricer:
+    """
+    A class to price options using different methods.
+    """
     def __init__(self,
         current_stock_price: float,
         strike_price: float,
@@ -23,18 +26,23 @@ class OptionPricer:
         self.N = N
 
     def price_BSM(self):
+        """
+        Price the option using the Black-Scholes-Merton model.
+        """
         d1 = (np.log(self.current_stock_price / self.strike_price) + (self.risk_free_rate + 0.5 * self.volatility**2) * self.T) / (self.volatility * np.sqrt(self.T))
         d2 = d1 - self.volatility * np.sqrt(self.T)
 
         if self.option_type == "call":
-            return self.current_stock_price * sp.stats.norm.cdf(d1) - self.strike_price * np.exp(-self.risk_free_rate * self.T) * sp.stats.norm.cdf(d2)
+            return self.current_stock_price * stats.norm.cdf(d1) - self.strike_price * np.exp(-self.risk_free_rate * self.T) * stats.norm.cdf(d2)
         elif self.option_type == "put":
-            return -self.current_stock_price * sp.stats.norm.cdf(-d1) + self.strike_price * np.exp(-self.risk_free_rate * self.T) * sp.stats.norm.cdf(-d2)
+            return -self.current_stock_price * stats.norm.cdf(-d1) + self.strike_price * np.exp(-self.risk_free_rate * self.T) * stats.norm.cdf(-d2)
         else:
             raise ValueError("option_type must be 'call' or 'put'")
     
     def price_binomial(self):
-
+        """
+        Price the option using the binomial model.
+        """
         current_stock_price = np.atleast_1d(self.current_stock_price)
         strike_price = np.atleast_1d(self.strike_price)
         dt = self.T/self.N
@@ -66,9 +74,42 @@ class OptionPricer:
         return np.squeeze(option_payoff) # squeeze to avoid [[[result]]]
 
     def price(self):
+        """ 
+        Price the option using the specified method.
+        """
         if self.method == "bsm":
             return self.price_BSM()
         elif self.method == "binomial":
             return self.price_binomial()
         else:
             raise ValueError(f"Unknown pricing method: {self.method}")
+    
+    def greeks(self):
+        """
+        Calculate the Greeks for the option using the Black-Scholes-Merton model.
+        """
+        d1 = (np.log(self.current_stock_price / self.strike_price) + (self.risk_free_rate + 0.5 * self.volatility**2) * self.T) / (self.volatility * np.sqrt(self.T))
+        d2 = d1 - self.volatility * np.sqrt(self.T)
+
+        if self.option_type == "call":
+            delta = stats.norm.cdf(d1)
+            gamma = stats.norm.pdf(d1) / (self.current_stock_price * self.volatility * np.sqrt(self.T))
+            theta = (-self.current_stock_price * stats.norm.pdf(d1) * self.volatility / (2 * np.sqrt(self.T)) - self.risk_free_rate * self.strike_price * np.exp(-self.risk_free_rate * self.T) * stats.norm.cdf(d2))
+            vega = self.current_stock_price * stats.norm.pdf(d1) * np.sqrt(self.T)
+            rho = self.strike_price * self.T * np.exp(-self.risk_free_rate * self.T) * stats.norm.cdf(d2)
+        elif self.option_type == "put":
+            delta = sp.stats.norm.cdf(d1) - 1
+            gamma = sp.stats.norm.pdf(d1) / (self.current_stock_price * self.volatility * np.sqrt(self.T))
+            theta = (-self.current_stock_price * stats.norm.pdf(d1) * self.volatility / (2 * np.sqrt(self.T)) + self.risk_free_rate * self.strike_price * np.exp(-self.risk_free_rate * self.T) * stats.norm.cdf(-d2))
+            vega = self.current_stock_price *stats.norm.pdf(d1) * np.sqrt(self.T)
+            rho = -self.strike_price * self.T * np.exp(-self.risk_free_rate * self.T) * stats.norm.cdf(-d2)
+        else:
+            raise ValueError("option_type must be 'call' or 'put'")
+
+        return {
+            "delta": delta,
+            "gamma": gamma,
+            "theta": theta,
+            "vega": vega,
+            "rho": rho
+        }
