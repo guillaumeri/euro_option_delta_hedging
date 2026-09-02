@@ -23,6 +23,7 @@ class FinancialData:
         """
         Simulates stock price data using Geometric Brownian Motion.
         """
+        np.random.seed(1)
         dt = T/N 
         t = np.linspace(0, T, N+1)
         dW = np.random.standard_normal(N) * np.sqrt(dt)
