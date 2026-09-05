@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from pricer import OptionPricer
-from financial_data import FinancialData, FinancialTools
+from src.pricer import OptionPricer
+from src.financial_data import FinancialData, FinancialTools
 
 class DeltaHedgingSimulator:
     """A class to simulate delta hedging strategy for options, as a market-maker."""
