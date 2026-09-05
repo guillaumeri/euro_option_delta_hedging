@@ -7,23 +7,23 @@ class OptionPricer:
     A class to price options using different methods.
     """
     def __init__(self,
-        current_stock_price: float,
-        strike_price: float,
-        risk_free_rate: float,
-        volatility: float,
-        T: float,
-        option_type: str = "call",
-        method: str = "bsm", 
-        N: int = 100):
+        current_stock_price,
+        strike_price,
+        risk_free_rate,
+        volatility,
+        T,
+        option_type = "call",
+        method = "bsm", 
+        N = 100):
 
         self.current_stock_price = current_stock_price
         self.strike_price = strike_price
         self.risk_free_rate = risk_free_rate
         self.volatility = volatility
-        self.T = T
+        self.T = T # maturity time
         self.option_type = option_type # "call" or "put"
         self.method = method # "bsm" or "binomial"
-        self.N = N
+        self.N = N # amount of subdivision
 
     def price_BSM(self):
         """
